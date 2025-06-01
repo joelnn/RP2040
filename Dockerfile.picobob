@@ -1,0 +1,37 @@
+FROM ubuntu:22.04
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install required packages
+RUN apt-get update && apt-get install -y \
+    cmake \
+    gcc-arm-none-eabi \
+    libnewlib-arm-none-eabi \
+    libstdc++-arm-none-eabi-newlib \
+    build-essential \
+    git \
+    python3 \
+    python3-pip \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up Pico SDK
+ENV PICO_SDK_PATH=/opt/pico-sdk
+RUN git clone --depth 1 --branch 2.1.1 https://github.com/raspberrypi/pico-sdk.git $PICO_SDK_PATH && \
+    cd $PICO_SDK_PATH && \
+    git submodule update --init
+
+# Build pioasm
+RUN cd $PICO_SDK_PATH/tools/pioasm && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make && \
+    cp pioasm /usr/local/bin/
+
+# Set working directory
+WORKDIR /workspace
+
+# Default command
+CMD ["/bin/bash"]
